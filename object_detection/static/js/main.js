@@ -46,8 +46,9 @@ $(document).ready(function () {
                 $('.loader').hide();
                 $('#result').fadeIn(600);
                 // create an image
-                $('#result').css('background-image', 'url(' + data + ')');
-
+                path = '/static/results.jpg' + '?rand=' + Math.random();
+                $('#result').css('background-image', 'url(' + path + ')');
+                $('#predict').text(data);
                 console.log('Success!' + data);
             },
         });

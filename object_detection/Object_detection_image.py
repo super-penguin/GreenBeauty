@@ -29,7 +29,7 @@ from utils import visualization_utils as vis_util
 
 # Name of the directory containing the object detection module we're using
 MODEL_NAME = 'inference_graph'
-IMAGE_NAME = 'validation_2.jpg'
+IMAGE_NAME = 'demo_01.jpg'
 
 # Grab path to current working directory
 CWD_PATH = os.getcwd()
@@ -45,7 +45,7 @@ PATH_TO_LABELS = os.path.join(CWD_PATH,'training','labelmap.pbtxt')
 PATH_TO_IMAGE = os.path.join(CWD_PATH,IMAGE_NAME)
 
 # Number of classes the object detector can identify
-NUM_CLASSES = 3
+NUM_CLASSES = 40
 
 # Load the label map.
 # Label maps map indices to category names, so that when our convolution
@@ -117,10 +117,10 @@ for index, value in enumerate(classes[0]):
             scores[0, index]
         objects.append(object_dict)
 
-
+print (objects)
 # All the results have been drawn on image. Now display the image.
 cv2.imshow('Object detector', image)
-cv2.imwrite( "validation_2_results.jpg", image)
+cv2.imwrite("/static/results.jpg", image)
 # Press any key to close the image
 cv2.waitKey(0)
 

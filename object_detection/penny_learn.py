@@ -11,18 +11,18 @@ import tensorflow as tf
 # Import utilites
 from utils import label_map_util
 from utils import visualization_utils as vis_util
-
+import collections
 # Flask utils
 from flask import Flask, redirect, url_for, request, render_template, send_file
 from werkzeug.utils import secure_filename
 from gevent.pywsgi import WSGIServer
 
 # Define a flask app
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static')
 
 # This is needed since the notebook is stored in the object_detection folder.
 sys.path.append("..")
-
+# sys.path.append(os.getcwd())
 
 # Import utilites
 from utils import label_map_util
@@ -30,7 +30,7 @@ from utils import visualization_utils as vis_util
 
 # Name of the directory containing the object detection module we're using
 MODEL_NAME = 'inference_graph'
-IMAGE_NAME = 'validation_2.jpg'
+# IMAGE_NAME = 'validation_2.jpg'
 
 # Grab path to current working directory
 CWD_PATH = os.getcwd()
@@ -66,6 +66,7 @@ with detection_graph.as_default():
     sess = tf.Session(graph=detection_graph)
 
 print('Model loaded. Check http://127.0.0.1:5000/')
+
 
 def object_detection(path, sess):
     # image = cv2.imread(PATH_TO_IMAGE)
@@ -103,17 +104,24 @@ def object_detection(path, sess):
         line_thickness=8,
         min_score_thresh=0.80)
 
+
+    cv2.imwrite('/Users/Penny/Insights/object_detection/static/results.jpg', image)
+
     objects = []
     threshold = 0.8
     for index, value in enumerate(classes[0]):
-        object_dict = {}
+        # object_dict = {}
         if scores[0, index] > threshold:
-            object_dict[(category_index.get(value)).get('name').encode('utf8')] = \
-                scores[0, index]
-            objects.append(object_dict)
+            # object_dict[(category_index.get(value)).get('name').encode('utf8')] = \
+            #     scores[0, index]
+            # objects.append((category_index.get(value)).get('name').encode('utf8'))
+            # print (category_index.get(value)).get('id')
+            objects.append((category_index.get(value)).get('id'))
     #print("Tomato Target Spot")
     # print(json.dumps(objects[0]))
-    return objects
+    return objects[0]
+
+# print (object_detection(IMAGE_NAME, sess))
 
 @app.route('/', methods=['GET'])
 def index():
@@ -134,7 +142,7 @@ def upload():
         f.save(file_path)
 
         result = object_detection(file_path, sess)
-        return send_file("validation_2.jpg", mimetype='image/jpeg')
+        return "Warning: avoid using the detected products!"
 
     return None
 
