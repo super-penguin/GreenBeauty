@@ -46,7 +46,7 @@ $(document).ready(function () {
                 $('.loader').hide();
                 $('#result').fadeIn(600);
                 // create an image
-                $('#result').attr('src', 'data:image/jpeg;base64;'+ data);
+                $('#result').css('background-image', 'url(' + data + ')');
 
                 console.log('Success!' + data);
             },
