@@ -29,7 +29,7 @@ from utils import visualization_utils as vis_util
 
 # Name of the directory containing the object detection module we're using
 MODEL_NAME = 'inference_graph'
-IMAGE_NAME = 'demo_01.jpg'
+IMAGE_NAME = 'uploads/demo_03.jpg'
 
 # Grab path to current working directory
 CWD_PATH = os.getcwd()
@@ -45,7 +45,7 @@ PATH_TO_LABELS = os.path.join(CWD_PATH,'training','labelmap.pbtxt')
 PATH_TO_IMAGE = os.path.join(CWD_PATH,IMAGE_NAME)
 
 # Number of classes the object detector can identify
-NUM_CLASSES = 40
+NUM_CLASSES = 7
 
 # Load the label map.
 # Label maps map indices to category names, so that when our convolution
@@ -56,6 +56,8 @@ label_map = label_map_util.load_labelmap(PATH_TO_LABELS)
 categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=NUM_CLASSES, use_display_name=True)
 category_index = label_map_util.create_category_index(categories)
 
+# label_map
+# category_index
 # Load the Tensorflow model into memory.
 detection_graph = tf.Graph()
 with detection_graph.as_default():
@@ -105,24 +107,75 @@ vis_util.visualize_boxes_and_labels_on_image_array(
     category_index,
     use_normalized_coordinates=True,
     line_thickness=8,
-    min_score_thresh=0.60)
+    min_score_thresh=0.80)
 
-
-objects = []
-threshold = 0.5
+##########################################
+# Print out the prediction ID
+##########################################
+NAME = []
+threshold = 0.8
 for index, value in enumerate(classes[0]):
-    object_dict = {}
     if scores[0, index] > threshold:
-        object_dict[(category_index.get(value)).get('name').encode('utf8')] = \
-            scores[0, index]
-        objects.append(object_dict)
+        NAME.append((category_index.get(value)).get('name'))
+print (NAME)
 
-print (objects)
+##########################################
+# Load ingredient information
+##########################################
+# import json
+# if not NAME:
+#     print( "Your skin care cabinet is SAFE.")
+# else:
+#     Output = {}
+#     Output['WARNING: '] = 'avoid using the detected products!'
+#     for name in NAME:
+#         Output['Product Name: '] = name
+#         Output['Contains: '] = data.loc[data['name'] == name]['Ingredient'].values[0]
+#         Output ['Info: '] =  data.loc[data['name'] == name]['Info'].values[0]
+#         Output_json = json.dumps(Output)
+#
+#     print(Output_json)
+if not NAME:
+    print( "Your skin care cabinet is SAFE.")
+else:
+    Output = {}
+    Output['WARNING'] = 'avoid using the detected products!'
+    Output['Product'] = []
+    for name in NAME:
+        Output['Product'].append({'Name': name,
+        'Ingredient': data.loc[data['name'] == name]['Ingredient'].values[0],
+        'Info': data.loc[data['name'] == name]['Info'].values[0]})
+        Output_json = json.dumps(Output)
+    print (Output_json)
+
+
+import pandas as pd
+data = pd.read_csv("LookUp.csv")
+data
+for name in NAME:
+    print('Product Name: ' + name + '\n')
+    print ('Contains: ' + data.loc[data['name'] == name]['Ingredient'].values[0] + '\n')
+    print ('Info: ' + data.loc[data['name'] == name]['Info'].values[0] + '\n')
+
+##########################################
+# Print out the prediction with percentage
+##########################################
+# objects = []
+# threshold = 0.5
+# for index, value in enumerate(classes[0]):
+#     object_dict = {}
+#     if scores[0, index] > threshold:
+#     #     objects.append((category_index.get(value)).get('id'))
+#         object_dict[(category_index.get(value)).get('name')] = scores[0, index]
+#     objects.append(object_dict)
+#
+# print (objects)
+
+
 # All the results have been drawn on image. Now display the image.
 cv2.imshow('Object detector', image)
 cv2.imwrite("/static/results.jpg", image)
 # Press any key to close the image
 cv2.waitKey(0)
-
 # Clean up
 cv2.destroyAllWindows()

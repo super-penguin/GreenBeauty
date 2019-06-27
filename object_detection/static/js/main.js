@@ -14,6 +14,7 @@ $(document).ready(function () {
                 $('#imagePreview').fadeIn(650);
             }
             reader.readAsDataURL(input.files[0]);
+            $('#predict').empty();
         }
     }
     $("#imageUpload").change(function () {
@@ -31,7 +32,6 @@ $(document).ready(function () {
         // Show loading animation
         $(this).hide();
         $('.loader').show();
-
         // Make prediction by calling api /predict
         $.ajax({
             type: 'POST',
@@ -47,9 +47,23 @@ $(document).ready(function () {
                 $('#result').fadeIn(600);
                 // create an image
                 path = '/static/results.jpg' + '?rand=' + Math.random();
+                var tempData = JSON.parse(data);
+                console.log('Success!' + tempData);
+
                 $('#result').css('background-image', 'url(' + path + ')');
-                $('#predict').text(data);
-                console.log('Success!' + data);
+
+                $('#predict').append("<div class='msg'>"+tempData["Title"]+"</div>");
+                var list = $('<ul />')
+                $('#predict').append(list);
+                $.each(tempData["Product"], function(index, value) {
+                    //console.log(index, value);
+                    var item = $('<ul class="item" />');
+                    item.append($('<li />', {text: 'Name: ' + value['Name']}));
+                    item.append($('<li />', {text: 'Ingredient: ' + value['Ingredient']}));
+                    item.append($('<li />', {text: 'Info: ' + value['Info']}));
+                    item.appendTo(list);
+
+                });
             },
         });
     });

@@ -16,6 +16,8 @@ import collections
 from flask import Flask, redirect, url_for, request, render_template, send_file
 from werkzeug.utils import secure_filename
 from gevent.pywsgi import WSGIServer
+import pandas as pd
+import json
 
 # Define a flask app
 app = Flask(__name__, static_url_path='/static')
@@ -30,7 +32,7 @@ from utils import visualization_utils as vis_util
 
 # Name of the directory containing the object detection module we're using
 MODEL_NAME = 'inference_graph'
-# IMAGE_NAME = 'validation_2.jpg'
+# IMAGE_NAME = '/uploads/demo_03.jpg'
 
 # Grab path to current working directory
 CWD_PATH = os.getcwd()
@@ -46,7 +48,7 @@ PATH_TO_LABELS = os.path.join(CWD_PATH,'training','labelmap.pbtxt')
 # PATH_TO_IMAGE = os.path.join(CWD_PATH,IMAGE_NAME)
 
 # Number of classes the object detector can identify
-NUM_CLASSES = 3
+NUM_CLASSES = 7
 
 # Load the label map.
 
@@ -104,22 +106,30 @@ def object_detection(path, sess):
         line_thickness=8,
         min_score_thresh=0.80)
 
+    cv2.imwrite('static/results.jpg', image)
 
-    cv2.imwrite('/Users/Penny/Insights/object_detection/static/results.jpg', image)
-
-    objects = []
+    NAME = []
     threshold = 0.8
     for index, value in enumerate(classes[0]):
-        # object_dict = {}
         if scores[0, index] > threshold:
-            # object_dict[(category_index.get(value)).get('name').encode('utf8')] = \
-            #     scores[0, index]
-            # objects.append((category_index.get(value)).get('name').encode('utf8'))
-            # print (category_index.get(value)).get('id')
-            objects.append((category_index.get(value)).get('id'))
-    #print("Tomato Target Spot")
-    # print(json.dumps(objects[0]))
-    return objects[0]
+            NAME.append((category_index.get(value)).get('name'))
+
+
+    data = pd.read_csv("LookUp.csv")
+
+    Output = {}
+    if not NAME:
+        Output['Title'] = 'Your skin care cabinet is SAFE.'
+    else:
+        Output['Title'] = ' WARNING: avoid using the detected products!'
+        Output['Product'] = []
+        for name in NAME:
+            Output['Product'].append({'Name': data.loc[data['name'] == name]['BrandName'].values[0],
+            'Ingredient': data.loc[data['name'] == name]['Ingredient'].values[0],
+            'Info': data.loc[data['name'] == name]['Info'].values[0]})
+
+        Output_json = json.dumps(Output)
+        return Output_json
 
 # print (object_detection(IMAGE_NAME, sess))
 
@@ -142,8 +152,7 @@ def upload():
         f.save(file_path)
 
         result = object_detection(file_path, sess)
-        return "Warning: avoid using the detected products!"
-
+        return result
     return None
 
 if __name__ == '__main__':
